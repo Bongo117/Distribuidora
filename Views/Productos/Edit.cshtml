@@ -1,0 +1,67 @@
+@model Distribuidora.Models.Producto
+
+@{
+    ViewData["Title"] = "Edit";
+}
+
+<h1>Edit</h1>
+
+<h4>Producto</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Edit" enctype="multipart/form-data">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="Id" />
+            <div class="form-group">
+                <label asp-for="Nombre" class="control-label"></label>
+                <input asp-for="Nombre" class="form-control" />
+                <span asp-validation-for="Nombre" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Descripcion" class="control-label"></label>
+                <input asp-for="Descripcion" class="form-control" />
+                <span asp-validation-for="Descripcion" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="PrecioCosto" class="control-label"></label>
+                <input asp-for="PrecioCosto" class="form-control" />
+                <span asp-validation-for="PrecioCosto" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="PrecioVenta" class="control-label"></label>
+                <input asp-for="PrecioVenta" class="form-control" />
+                <span asp-validation-for="PrecioVenta" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="StockActual" class="control-label"></label>
+                <input asp-for="StockActual" class="form-control" />
+                <span asp-validation-for="StockActual" class="text-danger"></span>
+            </div>
+            <!-- Mostramos la foto actual -->
+            @if (!string.IsNullOrEmpty(Model.FotoUrl))
+            {
+                <div class="form-group">
+                    <label class="control-label">Foto Actual</label>
+                    <img src="@Model.FotoUrl" alt="Foto del Producto" style="max-width: 100px; max-height: 100px;" class="d-block mb-2" />
+                </div>
+            }
+            <div class="form-group">
+                <label class="control-label">Cambiar Foto</label>
+                <input type="file" name="foto" class="form-control" />
+            </div>
+            <div class="form-group">
+                <label asp-for="ProveedorId" class="control-label"></label>
+                <select asp-for="ProveedorId" class="form-control" asp-items="ViewBag.ProveedorId"></select>
+                <span asp-validation-for="ProveedorId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Save" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
