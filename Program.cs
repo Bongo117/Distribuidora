@@ -1,34 +1,57 @@
-// --- Imports necesarios ---
-using Microsoft.AspNetCore.Identity; // <--- ESTA ES LA LÍNEA QUE FALTABA
+using System.Text;
+using Microsoft.AspNetCore.Identity; 
 using Microsoft.EntityFrameworkCore;
-using Distribuidora.Data;     // Para que encuentre el ApplicationDbContext
-using Distribuidora.Models;    // Para que encuentre la clase Usuario
+using Distribuidora.Data;     
+using Distribuidora.Models;    
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
-
-// --- SECCIÓN DE CONFIGURACIÓN DE SERVICIOS ---
-
-// 1. Lee la cadena de conexión desde appsettings.json
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
-// 2. Registra el DbContext
+
 builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlite(connectionString));
 
-// 3. Registra Identity (Esta es la línea 19, que ahora funcionará)
-// ESTE ES EL BUENO: Usa "AddDefaultIdentity" (para la UI) y le suma ".AddRoles"
+
 builder.Services.AddDefaultIdentity<Usuario>(options => options.SignIn.RequireConfirmedAccount = false)
-    .AddRoles<IdentityRole>() // <-- Le decimos a la "default" que agregue roles
+    .AddRoles<IdentityRole>() 
     .AddEntityFrameworkStores<ApplicationDbContext>();
 
-// 4. Agrega el servicio de controladores y vistas
+
+builder.Services.AddAuthentication(options =>
+{
+    
+    options.DefaultAuthenticateScheme = IdentityConstants.ApplicationScheme;
+    options.DefaultChallengeScheme = IdentityConstants.ApplicationScheme;
+    options.DefaultSignInScheme = IdentityConstants.ApplicationScheme;
+}).AddJwtBearer(options => 
+{
+    options.SaveToken = true;
+    options.RequireHttpsMetadata = false; 
+
+    var jwtKey = builder.Configuration["Jwt:Key"];
+    if (string.IsNullOrEmpty(jwtKey))
+    {
+        throw new InvalidOperationException("La clave JWT (Jwt:Key) no está configurada en appsettings.json");
+    }
+
+    options.TokenValidationParameters = new TokenValidationParameters()
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidAudience = builder.Configuration["Jwt:Audience"],
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+    };
+});
+
+
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 
-// --- FIN DE SERVICIOS ---
+var app = builder.Build(); 
 
-var app = builder.Build(); // Construye la aplicación
 
-// --- SECCIÓN DE "MIDDLEWARE" (El orden importa) ---
 
 if (!app.Environment.IsDevelopment())
 {
@@ -36,12 +59,11 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-//app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
 
-// 5. AÑADE ESTOS DOS (en este orden)
+
 app.UseAuthentication(); 
 app.UseAuthorization();  
 
@@ -49,9 +71,8 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-app.MapRazorPages(); // <-- Necesario para las vistas de Login
-
-// --- SECCIÓN PARA "SEMBRAR" DATOS (justo antes de app.Run()) ---
+app.MapRazorPages(); 
+//SECCIÓN PARA "SEMBRAR" DATOS 
 
 using (var scope = app.Services.CreateScope())
 {
@@ -67,6 +88,5 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-// --- FIN DE LA SECCIÓN DE SEMBRADO ---
 
 app.Run(); 
