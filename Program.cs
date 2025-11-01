@@ -46,7 +46,9 @@ builder.Services.AddAuthentication(options =>
 });
 
 
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews()
+    .AddJsonOptions(x =>
+        x.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles);
 builder.Services.AddRazorPages();
 
 var app = builder.Build(); 
@@ -72,7 +74,7 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.MapRazorPages(); 
-//SECCIÓN PARA "SEMBRAR" DATOS 
+//SECCIÓN PARA SEMBRAR DATOS 
 
 using (var scope = app.Services.CreateScope())
 {
