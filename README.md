@@ -13,7 +13,7 @@ Se trata de un sistema de gestión de pedidos, stock, clientes y proveedores par
 
 ## Usuarios de Prueba
 
-Los usuarios se crean automáticamente al primer inicio con el archivo (`SeedData.cs`):
+Los usuarios se crean automáticamente al primer inicio con el archivo SeedData.cs:
 
 * **Rol Administrador:**
     * **Email:** `admin@dis.com`
