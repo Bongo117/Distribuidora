@@ -26,10 +26,32 @@ namespace Distribuidora.Controllers
 
         // GET: Productos
         [AllowAnonymous]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int? pagina) // 1. Recibe el n° de página
         {
-            var applicationDbContext = _context.Productos.Include(p => p.Proveedor);
-            return View(await applicationDbContext.ToListAsync());
+            int RPP = 5; // Registros Por Página (podés poner el n° que quieras)
+            int paginaActual = pagina ?? 1; // Si no mandan página, asumimos que es la 1
+
+            // Incluimos al Proveedor (como ya estaba)
+            var query = _context.Productos.Include(p => p.Proveedor);
+
+            // Contamos el total de productos (para saber cuántas páginas hay)
+            int totalRegistros = await query.CountAsync();
+
+            // Calculamos el total de páginas (usando Math.Ceiling para redondear hacia arriba)
+            int totalPaginas = (int)Math.Ceiling((double)totalRegistros / RPP);
+
+            // Pasamos los datos del paginador a la Vista para que los use
+            ViewBag.PaginaActual = paginaActual;
+            ViewBag.TotalPaginas = totalPaginas;
+
+            // ¡La magia! Paginado por servidor.
+            // No trae todo, solo trae los 5 de esa página.
+            var productosPaginados = await query
+                                        .Skip((paginaActual - 1) * RPP) // Saltea los registros de pág. anteriores
+                                        .Take(RPP) // Toma solo 5
+                                        .ToListAsync();
+
+            return View(productosPaginados);
         }
 
         // GET: Productos/Details/5
