@@ -24,37 +24,33 @@ namespace Distribuidora.Controllers
             _webHostEnvironment = webHostEnvironment;
         }
 
-        // GET: Productos
+        
         [AllowAnonymous]
-        public async Task<IActionResult> Index(int? pagina) // 1. Recibe el n° de página
+        public async Task<IActionResult> Index(int? pagina) 
         {
-            int RPP = 5; // Registros Por Página (podés poner el n° que quieras)
-            int paginaActual = pagina ?? 1; // Si no mandan página, asumimos que es la 1
+            int RPP = 5; 
+            int paginaActual = pagina ?? 1; 
 
-            // Incluimos al Proveedor (como ya estaba)
+            
             var query = _context.Productos.Include(p => p.Proveedor);
 
-            // Contamos el total de productos (para saber cuántas páginas hay)
             int totalRegistros = await query.CountAsync();
 
-            // Calculamos el total de páginas (usando Math.Ceiling para redondear hacia arriba)
             int totalPaginas = (int)Math.Ceiling((double)totalRegistros / RPP);
 
-            // Pasamos los datos del paginador a la Vista para que los use
+            
             ViewBag.PaginaActual = paginaActual;
             ViewBag.TotalPaginas = totalPaginas;
 
-            // ¡La magia! Paginado por servidor.
-            // No trae todo, solo trae los 5 de esa página.
+           
             var productosPaginados = await query
-                                        .Skip((paginaActual - 1) * RPP) // Saltea los registros de pág. anteriores
-                                        .Take(RPP) // Toma solo 5
+                                        .Skip((paginaActual - 1) * RPP) 
+                                        .Take(RPP) 
                                         .ToListAsync();
 
             return View(productosPaginados);
         }
 
-        // GET: Productos/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -73,14 +69,12 @@ namespace Distribuidora.Controllers
             return View(producto);
         }
 
-        // GET: Productos/Create
         public IActionResult Create()
         {
             ViewData["ProveedorId"] = new SelectList(_context.Proveedores, "Id", "RazonSocial");
             return View();
         }
 
-        // POST: Productos/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,Nombre,Descripcion,PrecioCosto,PrecioVenta,StockActual,ProveedorId")] Producto producto, IFormFile? foto)
@@ -114,8 +108,6 @@ namespace Distribuidora.Controllers
             ViewData["ProveedorId"] = new SelectList(_context.Proveedores, "Id", "RazonSocial", producto.ProveedorId);
             return View(producto);
         }
-
-        // GET: Productos/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -132,7 +124,6 @@ namespace Distribuidora.Controllers
             return View(producto);
         }
 
-        // POST: Productos/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Nombre,Descripcion,PrecioCosto,PrecioVenta,StockActual,ProveedorId")] Producto producto, IFormFile? foto)
@@ -146,8 +137,7 @@ namespace Distribuidora.Controllers
             {
                 try
                 {
-                    // Si no se sube una foto nueva, necesitamos mantener la antigua.
-                    // Para eso, primero recuperamos el producto original de la BD.
+
                     if (foto == null)
                     {
                         var productoExistente = await _context.Productos.AsNoTracking().FirstOrDefaultAsync(p => p.Id == id);
@@ -195,7 +185,6 @@ namespace Distribuidora.Controllers
             return View(producto);
         }
 
-        // GET: Productos/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -214,7 +203,6 @@ namespace Distribuidora.Controllers
             return View(producto);
         }
 
-        // POST: Productos/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
@@ -222,13 +210,10 @@ namespace Distribuidora.Controllers
             var producto = await _context.Productos.FindAsync(id);
             if (producto != null)
             {
-                // --- LÓGICA PARA BORRAR LA FOTO (NUEVO) ---
                 if (!string.IsNullOrEmpty(producto.FotoUrl))
                 {
-                    // Construimos la ruta completa al archivo en wwwroot
                     var imagePath = Path.Combine(_webHostEnvironment.WebRootPath, producto.FotoUrl.TrimStart('/'));
 
-                    // Verificamos si el archivo existe y lo borramos
                     if (System.IO.File.Exists(imagePath))
                     {
                         System.IO.File.Delete(imagePath);

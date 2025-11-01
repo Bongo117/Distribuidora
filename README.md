@@ -11,6 +11,15 @@ Se trata de un sistema de gestión de pedidos, stock, clientes y proveedores par
 * **Seguridad:** ASP.NET Core Identity con Roles
 * **API:** Web API con autenticación JWT
 
+## Cómo Ejecutar el Proyecto
+
+1.  Clonar el repositorio.
+2.  Abrir una terminal en la carpeta raíz (donde está `Distribuidora.sln`).
+3.  Ingresar a la carpeta del proyecto: `cd Distribuidora`
+4.  Ejecutar `dotnet restore` para instalar los paquetes.
+5.  Ejecutar `dotnet ef database update` para aplicar las migraciones y crear la BD (`distribuidora.db`).
+6.  Ejecutar `dotnet run` para iniciar el servidor.
+7.  Abrir el navegador en la URL indicada (ej. `http://localhost:5218`).
 ## Usuarios de Prueba
 
 Los usuarios se crean automáticamente al primer inicio con el archivo SeedData.cs:

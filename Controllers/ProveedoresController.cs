@@ -163,32 +163,31 @@ namespace Distribuidora.Controllers
          * * DESDE ACÁ, LOS MÉTODOS PARA VUE.JS (API)
          * ****************************************************/
 
-        // GET: /Proveedores/Listado
-        // Este es el método que fallaba con 404
+        
         [HttpGet]
         public async Task<IActionResult> Listado()
         {
             var proveedores = await _context.Proveedores.ToListAsync();
-            // Devolvemos los datos en formato JSON
+            
             return Json(proveedores);
         }
 
-        // POST: /Proveedores/CreateAPI
+       
         [HttpPost]
-        // [FromBody] le dice a C# que el dato viene como JSON en el cuerpo del request
+        
         public async Task<IActionResult> CreateAPI([FromBody] Proveedor proveedor)
         {
             if (ModelState.IsValid)
             {
                 _context.Add(proveedor);
                 await _context.SaveChangesAsync();
-                // Devolvemos el proveedor recién creado (con su nuevo Id)
+                
                 return Json(proveedor);
             }
-            return BadRequest(ModelState); // Si falla, devuelve un error 400
+            return BadRequest(ModelState); 
         }
 
-        // PUT: /Proveedores/EditAPI/5
+        
         [HttpPut]
         public async Task<IActionResult> EditAPI(int id, [FromBody] Proveedor proveedor)
         {
@@ -215,12 +214,12 @@ namespace Distribuidora.Controllers
                         throw;
                     }
                 }
-                return Ok(proveedor); // Devolvemos el objeto actualizado
+                return Ok(proveedor); 
             }
             return BadRequest(ModelState);
         }
 
-        // DELETE: /Proveedores/DeleteAPI/5
+        
         [HttpDelete]
         public async Task<IActionResult> DeleteAPI(int id)
         {
@@ -233,7 +232,7 @@ namespace Distribuidora.Controllers
             _context.Proveedores.Remove(proveedor);
             await _context.SaveChangesAsync();
 
-            return Ok(); // Devolvemos un simple "200 OK"
+            return Ok(); 
         }
     }
 }
