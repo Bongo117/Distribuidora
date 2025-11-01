@@ -6,3 +6,61 @@
     <h1 class="display-4">Welcome</h1>
     <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
 </div>
+
+<div class="card p-3 my-4">
+    <h3>Buscador de Clientes (Prueba AJAX)</h3>
+    <div class="form-group">
+        <label>Buscar por Razón Social o CUIT:</label>
+        <input type="text" id="buscadorClienteInput" class="form-control" />
+    </div>
+    
+    <div id="resultadosBusqueda" class="list-group mt-2">
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            
+            const inputBusqueda = document.getElementById("buscadorClienteInput");
+            const divResultados = document.getElementById("resultadosBusqueda");
+
+            inputBusqueda.addEventListener("keyup", async function() {
+                
+                let termino = inputBusqueda.value;
+
+                if (termino.length < 3) {
+                    divResultados.innerHTML = "";
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`/Clientes/BuscarClientes?terminoBusqueda=${encodeURIComponent(termino)}`);
+                    
+                    if (!response.ok) {
+                        console.error("Error en la respuesta del servidor");
+                        return;
+                    }
+
+                    const clientes = await response.json();
+                    divResultados.innerHTML = "";
+
+                    if (clientes.length === 0) {
+                        divResultados.innerHTML = '<a class="list-group-item">No se encontraron clientes.</a>';
+                    } else {
+                        clientes.forEach(cliente => {
+                            let link = document.createElement("a");
+                            link.href = `/Clientes/Details/${cliente.id}`; 
+                            link.className = "list-group-item list-group-item-action";
+                            link.innerText = `${cliente.razonSocial} (CUIT: ${cliente.cuit})`;
+                            divResultados.appendChild(link);
+                        });
+                    }
+                } catch (error) {
+                    console.error("Error en la llamada fetch:", error);
+                }
+            });
+        });
+    </script>
+}
+</div>

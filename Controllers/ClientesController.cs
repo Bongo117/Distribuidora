@@ -155,5 +155,24 @@ namespace Distribuidora.Controllers
         {
             return _context.Clientes.Any(e => e.Id == id);
         }
+
+        [HttpGet]
+        public async Task<JsonResult> BuscarClientes(string? terminoBusqueda)
+        {
+            if (string.IsNullOrWhiteSpace(terminoBusqueda))
+            {
+                return Json(new List<Cliente>());
+            }
+
+            var clientesEncontrados = await _context.Clientes
+                .Where(c =>
+                    c.RazonSocial.ToLower().Contains(terminoBusqueda.ToLower()) ||
+                    c.CUIT.Contains(terminoBusqueda)
+                )
+                .Take(10)
+                .ToListAsync();
+
+            return Json(clientesEncontrados);
+        }
     }
 }
