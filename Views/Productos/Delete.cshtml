@@ -51,7 +51,7 @@
             @Html.DisplayNameFor(model => model.Proveedor)
         </dt>
         <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Proveedor.Id)
+            @(Model.Proveedor?.RazonSocial ?? "N/A")
         </dd>
     </dl>
     

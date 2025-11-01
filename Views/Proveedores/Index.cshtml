@@ -1,59 +1,153 @@
-@model IEnumerable<Distribuidora.Models.Proveedor>
-
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Gestión de Proveedores (Vue.js)";
 }
 
-<h1>Index</h1>
+<div id="appProveedores" class="container">
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.CUIT)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.RazonSocial)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Email)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Telefono)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Direccion)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.CUIT)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.RazonSocial)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Email)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Telefono)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Direccion)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
+    <h3>{{ titulo }}</h3>
+
+    <div v-if="modoFormulario" class="card p-3 mb-3">
+        <h4 v-if="esAlta">Nuevo Proveedor</h4>
+        <h4 v-else>Editando Proveedor</h4>
+
+        <form v-on:submit.prevent="guardarProveedor">
+            <div class="mb-3">
+                <label for="razonSocial" class="form-label">Razón Social</label>
+                <input type="text" class="form-control" id="razonSocial" v-model="proveedor.razonSocial" required>
+            </div>
+            <div class="mb-3">
+                <label for="cuit" class="form-label">CUIT</label>
+                <input type="text" class="form-control" id="cuit" v-model="proveedor.cuit" required>
+            </div>
+            <div class="mb-3">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" class="form-control" id="email" v-model="proveedor.email">
+            </div>
+
+            <button type="submit" class="btn btn-success">Guardar</button>
+            <button type="button" class="btn btn-secondary" v-on:click="cancelar">Cancelar</button>
+        </form>
+    </div>
+
+    <button v-if="!modoFormulario" v-on:click="mostrarFormulario(true)" class="btn btn-primary mb-3">Nuevo Proveedor</button>
+
+    <table class="table" v-if="!modoFormulario">
+        <thead>
+            <tr>
+                <th>Razón Social</th>
+                <th>CUIT</th>
+                <th>Email</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr v-for="prov in proveedores" :key="prov.id">
+                <td>{{ prov.razonSocial }}</td>
+                <td>{{ prov.cuit }}</td>
+                <td>{{ prov.email }}</td>
+                <td>
+                    <button v-on:click="mostrarFormulario(false, prov)" class="btn btn-warning btn-sm">Editar</button>
+                    <button v-on:click="eliminarProveedor(prov.id)" class="btn btn-danger btn-sm">Eliminar</button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+</div>
+
+
+@section Scripts {
+    <script>
+        // Creamos la aplicación Vue
+        const app = Vue.createApp({
+            // --- MODELO DE DATOS (data) ---
+            data() {
+                return {
+                    titulo: 'Proveedores (cargando...)',
+                    proveedores: [], // La lista de proveedores (arranca vacía)
+                    modoFormulario: false, // true = muestra form, false = muestra tabla
+                    esAlta: false, // true = es un Create, false = es un Edit
+                    proveedor: { // El modelo para el formulario
+                        id: 0,
+                        razonSocial: '',
+                        cuit: '',
+                        email: ''
+                    }
+                }
+            },
+
+            // --- MÉTODOS (Lógica) ---
+            methods: {
+                // Método para cargar la tabla de proveedores desde la API
+                async cargarProveedores() {
+                    this.titulo = 'Cargando proveedores...';
+                    try {
+                        // ¡Esto ahora SÍ va a funcionar!
+                        const res = await axios.get('/Proveedores/Listado'); 
+                        this.proveedores = res.data;
+                        this.titulo = 'Proveedores';
+                    } catch (error) {
+                        console.error("Error en cargarProveedores:", error);
+                        this.titulo = 'Error al cargar proveedores';
+                    }
+                },
+
+                // Método para mostrar/ocultar el form
+                mostrarFormulario(esAlta, proveedor = null) {
+                    this.modoFormulario = true;
+                    this.esAlta = esAlta;
+                    if (esAlta) {
+                        // Limpiamos el modelo para un alta
+                        this.proveedor = { id: 0, razonSocial: '', cuit: '', email: '' };
+                    } else {
+                        // Rellenamos el modelo para una edición
+                        this.proveedor = { ...proveedor }; // Copiamos el objeto
+                    }
+                },
+
+                cancelar() {
+                    this.modoFormulario = false;
+                },
+
+                async guardarProveedor() {
+                    try {
+                        if (this.esAlta) {
+                            // --- LÍNEA CORREGIDA ---
+                            await axios.post('/Proveedores/CreateAPI', this.proveedor);
+                            // -----------------------
+                        } else {
+                            // --- LÍNEA CORREGIDA ---
+                            await axios.put(`/Proveedores/EditAPI/${this.proveedor.id}`, this.proveedor);
+                            // -----------------------
+                        }
+                        this.modoFormulario = false;
+                        this.cargarProveedores(); // Recargamos la tabla
+                    } catch (error) {
+                        console.error("Error al guardar:", error);
+                    }
+                },
+
+                async eliminarProveedor(id) {
+                    if (confirm('¿Está seguro que desea eliminar este proveedor?')) {
+                        try {
+                            // --- LÍNEA CORREGIDA ---
+                            await axios.delete(`/Proveedores/DeleteAPI/${id}`);
+                            // -----------------------
+                            this.cargarProveedores(); // Recargamos la tabla
+                        } catch (error) {
+                            console.error("Error al eliminar:", error);
+                        }
+                    }
+                }
+            },
+
+            // --- CÓDIGO QUE SE EJECUTA AL CARGAR LA PÁGINA ---
+            mounted() {
+                this.cargarProveedores();
+            }
+        });
+
+        // "Montamos" la aplicación Vue en el div #appProveedores
+        app.mount('#appProveedores');
+    </script>
 }
-    </tbody>
-</table>
