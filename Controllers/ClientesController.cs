@@ -118,7 +118,6 @@ namespace Distribuidora.Controllers
             return View(cliente);
         }
 
-        // GET: Clientes/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -136,7 +135,6 @@ namespace Distribuidora.Controllers
             return View(cliente);
         }
 
-        // POST: Clientes/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
@@ -156,23 +154,26 @@ namespace Distribuidora.Controllers
             return _context.Clientes.Any(e => e.Id == id);
         }
 
+        // Se protege el endpoint para que solo usuarios logueados puedan acceder.
+        [Authorize(Roles = "Empleado,Administrador")]
         [HttpGet]
-        public async Task<JsonResult> BuscarClientes(string? terminoBusqueda)
+        public async Task<IActionResult> BuscarClientes(string? terminoBusqueda)
         {
-            if (string.IsNullOrWhiteSpace(terminoBusqueda))
+            // Se añade una validación extra para la longitud mínima.
+            if (string.IsNullOrWhiteSpace(terminoBusqueda) || terminoBusqueda.Length < 3)
             {
-                return Json(new List<Cliente>());
+                return Ok(new List<Cliente>());
             }
 
             var clientesEncontrados = await _context.Clientes
                 .Where(c =>
-                    c.RazonSocial.ToLower().Contains(terminoBusqueda.ToLower()) ||
+                    c.RazonSocial.ToUpper().Contains(terminoBusqueda.ToUpper()) || 
                     c.CUIT.Contains(terminoBusqueda)
                 )
                 .Take(10)
                 .ToListAsync();
 
-            return Json(clientesEncontrados);
+            return Ok(clientesEncontrados);
         }
     }
 }

@@ -76,13 +76,13 @@
                 }
             },
 
-            // --- MÉTODOS (Lógica) ---
+            // ---Lógica ---
             methods: {
                 // Método para cargar la tabla de proveedores desde la API
                 async cargarProveedores() {
                     this.titulo = 'Cargando proveedores...';
                     try {
-                        // ¡Esto ahora SÍ va a funcionar!
+                        
                         const res = await axios.get('/Proveedores/Listado'); 
                         this.proveedores = res.data;
                         this.titulo = 'Proveedores';
@@ -112,13 +112,10 @@
                 async guardarProveedor() {
                     try {
                         if (this.esAlta) {
-                            // --- LÍNEA CORREGIDA ---
                             await axios.post('/Proveedores/CreateAPI', this.proveedor);
-                            // -----------------------
                         } else {
-                            // --- LÍNEA CORREGIDA ---
-                            await axios.put(`/Proveedores/EditAPI/${this.proveedor.id}`, this.proveedor);
-                            // -----------------------
+                            // La ruta ahora incluye el ID como parte de la URL
+                            await axios.put(`/Proveedores/${this.proveedor.id}`, this.proveedor);
                         }
                         this.modoFormulario = false;
                         this.cargarProveedores(); // Recargamos la tabla
@@ -130,9 +127,8 @@
                 async eliminarProveedor(id) {
                     if (confirm('¿Está seguro que desea eliminar este proveedor?')) {
                         try {
-                            // --- LÍNEA CORREGIDA ---
-                            await axios.delete(`/Proveedores/DeleteAPI/${id}`);
-                            // -----------------------
+                            // La ruta ahora incluye el ID como parte de la URL
+                            await axios.delete(`/Proveedores/${id}`);
                             this.cargarProveedores(); // Recargamos la tabla
                         } catch (error) {
                             console.error("Error al eliminar:", error);

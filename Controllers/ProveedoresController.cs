@@ -11,7 +11,8 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace Distribuidora.Controllers
 {
-    [Authorize] 
+    // Todo el controlador requiere que el usuario haya iniciado sesión y tenga uno de estos roles.
+    [Authorize(Roles = "Administrador,Empleado")]
     public class ProveedoresController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -21,137 +22,12 @@ namespace Distribuidora.Controllers
             _context = context;
         }
 
-        
-        [AllowAnonymous] 
-        public async Task<IActionResult> Index()
-        {
-            return View(await _context.Proveedores.ToListAsync());
-        }
-
-        [AllowAnonymous] 
-        public async Task<IActionResult> Details(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var proveedor = await _context.Proveedores
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (proveedor == null)
-            {
-                return NotFound();
-            }
-
-            return View(proveedor);
-        }
-
-       
-        [Authorize(Roles = "Empleado,Administrador")] 
-        public IActionResult Create()
+        // GET: /Proveedores o /Proveedores/Index
+        // Esta acción simplemente devuelve la vista que contiene la app de Vue.js.
+        // No necesita ser asíncrona ni pasarle datos. Vue se encargará de pedirlos.
+        public IActionResult Index()
         {
             return View();
-        }
-
-       
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Empleado,Administrador")] 
-        public async Task<IActionResult> Create([Bind("Id,CUIT,RazonSocial,Email,Telefono,Direccion")] Proveedor proveedor)
-        {
-            if (ModelState.IsValid)
-            {
-                _context.Add(proveedor);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-            return View(proveedor);
-        }
-
-        
-        [Authorize(Roles = "Empleado,Administrador")] 
-        public async Task<IActionResult> Edit(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var proveedor = await _context.Proveedores.FindAsync(id);
-            if (proveedor == null)
-            {
-                return NotFound();
-            }
-            return View(proveedor);
-        }
-
-       
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Empleado,Administrador")] 
-        public async Task<IActionResult> Edit(int id, [Bind("Id,CUIT,RazonSocial,Email,Telefono,Direccion")] Proveedor proveedor)
-        {
-            if (id != proveedor.Id)
-            {
-                return NotFound();
-            }
-
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    _context.Update(proveedor);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!ProveedorExists(proveedor.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
-            }
-            return View(proveedor);
-        }
-
-        
-        [Authorize(Roles = "Administrador")] 
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var proveedor = await _context.Proveedores
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (proveedor == null)
-            {
-                return NotFound();
-            }
-
-            return View(proveedor);
-        }
-
-        
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Administrador")] 
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            var proveedor = await _context.Proveedores.FindAsync(id);
-            if (proveedor != null)
-            {
-                _context.Proveedores.Remove(proveedor);
-            }
-
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
         }
 
         private bool ProveedorExists(int id)
@@ -159,41 +35,40 @@ namespace Distribuidora.Controllers
             return _context.Proveedores.Any(e => e.Id == id);
         }
 
-        /****************************************************
-         * * DESDE ACÁ, LOS MÉTODOS PARA VUE.JS (API)
-         * ****************************************************/
-
-        
+        /*****************************************************************
+         *  API ENDPOINTS PARA VUE.JS
+         *  Estos métodos son llamados por Axios desde el frontend.
+         *  Están protegidos por el [Authorize] a nivel de clase.
+         *****************************************************************/
+ 
         [HttpGet]
         public async Task<IActionResult> Listado()
         {
             var proveedores = await _context.Proveedores.ToListAsync();
-            
-            return Json(proveedores);
+            return Ok(proveedores);
         }
 
-       
         [HttpPost]
-        
+        // El [FromBody] es crucial para que ASP.NET entienda el JSON enviado por Axios.
         public async Task<IActionResult> CreateAPI([FromBody] Proveedor proveedor)
         {
             if (ModelState.IsValid)
             {
                 _context.Add(proveedor);
                 await _context.SaveChangesAsync();
-                
-                return Json(proveedor);
+                // Devolvemos el objeto creado (con su nuevo ID) y un código 201 (Created).
+                return CreatedAtAction(nameof(Listado), new { id = proveedor.Id }, proveedor);
             }
-            return BadRequest(ModelState); 
+            return BadRequest(ModelState);
         }
 
-        
-        [HttpPut]
+        // Es buena práctica incluir el ID en la ruta para seguir el estándar REST.
+        [HttpPut("{id}")]
         public async Task<IActionResult> EditAPI(int id, [FromBody] Proveedor proveedor)
         {
             if (id != proveedor.Id)
             {
-                return BadRequest("IDs no coinciden");
+                return BadRequest();
             }
 
             if (ModelState.IsValid)
@@ -205,7 +80,7 @@ namespace Distribuidora.Controllers
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!ProveedorExists(proveedor.Id))
+                    if (!ProveedorExists(id))
                     {
                         return NotFound();
                     }
@@ -214,13 +89,15 @@ namespace Distribuidora.Controllers
                         throw;
                     }
                 }
-                return Ok(proveedor); 
+                // Un 204 (No Content) es una respuesta estándar para un PUT exitoso.
+                return NoContent();
             }
             return BadRequest(ModelState);
         }
 
-        
-        [HttpDelete]
+        [HttpDelete("{id}")]
+        // Solo los administradores pueden borrar.
+        [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> DeleteAPI(int id)
         {
             var proveedor = await _context.Proveedores.FindAsync(id);
@@ -232,7 +109,8 @@ namespace Distribuidora.Controllers
             _context.Proveedores.Remove(proveedor);
             await _context.SaveChangesAsync();
 
-            return Ok(); 
+            // Un 204 (No Content) es una respuesta estándar para un DELETE exitoso.
+            return NoContent();
         }
     }
 }

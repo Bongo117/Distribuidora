@@ -1,4 +1,4 @@
-﻿@{
+﻿﻿@{
     ViewData["Title"] = "Home Page";
 }
 
@@ -37,6 +37,12 @@
                 try {
                     const response = await fetch(`/Clientes/BuscarClientes?terminoBusqueda=${encodeURIComponent(termino)}`);
                     
+                    // Si la respuesta fue una redirección (a la página de login), es porque no estamos autenticados.
+                    if (response.redirected) {
+                        divResultados.innerHTML = '<div class="alert alert-warning">Debe iniciar sesión para buscar clientes.</div>';
+                        return;
+                    }
+
                     if (!response.ok) {
                         console.error("Error en la respuesta del servidor");
                         return;
