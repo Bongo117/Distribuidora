@@ -2,6 +2,8 @@
 Proyecto realizado para la materia Laboratorio de Programación II 
 Se trata de un sistema de gestión de pedidos, stock, clientes y proveedores para una distribuidora mayorista.
 
+### Todavía no está listo para presentación, lo voy a tener listo para mesa de exámen. Pero voy a seguir trabajando en paralelo
+
 ## Tecnológias
 
 * **Backend:** ASP.NET Core 8.0 MVC
