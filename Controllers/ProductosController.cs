@@ -25,7 +25,6 @@ namespace Distribuidora.Controllers
         }
 
         
-        [AllowAnonymous]
         public async Task<IActionResult> Index(int? pagina) 
         {
             int RPP = 5; 
