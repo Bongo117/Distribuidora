@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Authorization;
 namespace Distribuidora.Controllers
 {
     // Todo el controlador requiere que el usuario haya iniciado sesión y tenga uno de estos roles.
-    [Authorize(Roles = "Administrador,Empleado")]
+    [Authorize(Roles = "Administrador,Supervisor,Empleado")]
     public class ProveedoresController : Controller
     {
         private readonly ApplicationDbContext _context;
