@@ -11,7 +11,7 @@ using Distribuidora.Models;
 
 namespace Distribuidora.Controllers
 {
-    [Authorize(Roles = "Empleado,Administrador")]
+    [Authorize(Roles = "Empleado,Administrador,Supervisor")]
     public class ClientesController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -155,7 +155,7 @@ namespace Distribuidora.Controllers
         }
 
         // Se protege el endpoint para que solo usuarios logueados puedan acceder.
-        [Authorize(Roles = "Empleado,Administrador")]
+        [Authorize(Roles = "Empleado,Administrador,Supervisor")]
         [HttpGet]
         public async Task<IActionResult> BuscarClientes(string? terminoBusqueda)
         {
