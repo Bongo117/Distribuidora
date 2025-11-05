@@ -10,7 +10,7 @@ namespace Distribuidora.Data
             var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
             var userManager = serviceProvider.GetRequiredService<UserManager<Usuario>>();
 
-            // --- 1. Creación de Roles ---
+            
             string[] roleNames = { "Administrador", "Supervisor", "Empleado" };
             foreach (var roleName in roleNames)
             {
@@ -21,7 +21,7 @@ namespace Distribuidora.Data
                 }
             }
 
-            // --- 2. Creación del Usuario Administrador ---
+            
             var adminUser = await userManager.FindByEmailAsync("admin@dis.com");
             if (adminUser == null)
             {
@@ -31,7 +31,7 @@ namespace Distribuidora.Data
                     Email = "admin@dis.com",
                     EmailConfirmed = true 
                 };
-                //Clave: Admin123!
+                
                 var result = await userManager.CreateAsync(adminUser, "Admin123!"); 
                 if (result.Succeeded)
                 {
@@ -39,7 +39,7 @@ namespace Distribuidora.Data
                 }
             }
             
-            // --- 3. CREACIÓN DEL USUARIO EMPLEADO (¡NUEVO!) ---
+            
             var empleadoUser = await userManager.FindByEmailAsync("empleado@dis.com");
             if (empleadoUser == null)
             {
@@ -49,12 +49,31 @@ namespace Distribuidora.Data
                     Email = "empleado@dis.com",
                     EmailConfirmed = true
                 };
-                //Clave: Empleado123!
+               
                 var result = await userManager.CreateAsync(empleadoUser, "Empleado123!"); 
                 if (result.Succeeded)
                 {
-                    // ¡Le asignamos el rol Empleado!
+                    
                     await userManager.AddToRoleAsync(empleadoUser, "Empleado");
+                }
+            }
+
+            
+            var supervisorUser = await userManager.FindByEmailAsync("supervisor@dis.com");
+            if (supervisorUser == null)
+            {
+                supervisorUser = new Usuario
+                {
+                    UserName = "supervisor@dis.com",
+                    Email = "supervisor@dis.com",
+                    EmailConfirmed = true
+                };
+                
+                var result = await userManager.CreateAsync(supervisorUser, "Super123!");
+                if (result.Succeeded)
+                {
+                    
+                    await userManager.AddToRoleAsync(supervisorUser, "Supervisor");
                 }
             }
         }

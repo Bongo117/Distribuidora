@@ -1,7 +1,6 @@
 @{
     ViewData["Title"] = "Gestión de Proveedores (Vue.js)";
 }
-
 <div id="appProveedores" class="container">
 
     <h3>{{ titulo }}</h3>
@@ -9,6 +8,10 @@
     <div v-if="modoFormulario" class="card p-3 mb-3">
         <h4 v-if="esAlta">Nuevo Proveedor</h4>
         <h4 v-else>Editando Proveedor</h4>
+
+        <div v-if="errorApi" class="alert alert-danger">
+            <strong>Error:</strong> {{ errorApi }}
+        </div>
 
         <form v-on:submit.prevent="guardarProveedor">
             <div class="mb-3">
@@ -72,7 +75,8 @@
                         razonSocial: '',
                         cuit: '',
                         email: ''
-                    }
+                    },
+                    errorApi: null // Para mostrar errores de la API
                 }
             },
 
@@ -81,6 +85,7 @@
                 // Método para cargar la tabla de proveedores desde la API
                 async cargarProveedores() {
                     this.titulo = 'Cargando proveedores...';
+                    this.errorApi = null;
                     try {
                         
                         const res = await axios.get('/Proveedores/Listado'); 
@@ -89,6 +94,7 @@
                     } catch (error) {
                         console.error("Error en cargarProveedores:", error);
                         this.titulo = 'Error al cargar proveedores';
+                        this.errorApi = "No se pudieron cargar los datos. Verifique su conexión o permisos.";
                     }
                 },
 
@@ -96,6 +102,7 @@
                 mostrarFormulario(esAlta, proveedor = null) {
                     this.modoFormulario = true;
                     this.esAlta = esAlta;
+                    this.errorApi = null;
                     if (esAlta) {
                         // Limpiamos el modelo para un alta
                         this.proveedor = { id: 0, razonSocial: '', cuit: '', email: '' };
@@ -110,6 +117,7 @@
                 },
 
                 async guardarProveedor() {
+                    this.errorApi = null;
                     try {
                         if (this.esAlta) {
                             await axios.post('/Proveedores/CreateAPI', this.proveedor);
@@ -120,18 +128,31 @@
                         this.modoFormulario = false;
                         this.cargarProveedores(); // Recargamos la tabla
                     } catch (error) {
-                        console.error("Error al guardar:", error);
+                        console.error("Error al guardar:", error.response.data);
+                        // Intentamos construir un mensaje de error más claro
+                        if (error.response && error.response.data) {
+                            const errors = error.response.data;
+                            this.errorApi = Object.values(errors).flat().join(' ');
+                        } else {
+                            this.errorApi = "Ocurrió un error inesperado al guardar.";
+                        }
                     }
                 },
 
                 async eliminarProveedor(id) {
                     if (confirm('¿Está seguro que desea eliminar este proveedor?')) {
+                        this.errorApi = null;
                         try {
                             // La ruta ahora incluye el ID como parte de la URL
                             await axios.delete(`/Proveedores/${id}`);
                             this.cargarProveedores(); // Recargamos la tabla
                         } catch (error) {
                             console.error("Error al eliminar:", error);
+                            if (error.response && error.response.status === 403) {
+                                alert("No tiene permisos para eliminar este proveedor.");
+                            } else {
+                                alert("Ocurrió un error al intentar eliminar.");
+                            }
                         }
                     }
                 }
