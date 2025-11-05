@@ -32,5 +32,6 @@ Los usuarios se crean automáticamente al primer inicio con el archivo SeedData.
 * **Rol Empleado:**
     * **Email:** `empleado@dis.com`
     * **Clave:** `Empleado123!`
-
-
+* **Rol Supervisor:**
+    * **Email:** `supervisor@dis.com`
+    * **Clave:** `Super123!`
