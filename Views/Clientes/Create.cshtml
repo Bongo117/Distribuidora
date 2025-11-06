@@ -1,50 +1,141 @@
-@model Distribuidora.Models.Cliente
+@model Distribuidora.Models.Pedido
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Nuevo Pedido";
 }
 
-<h1>Create</h1>
-
-<h4>Cliente</h4>
+<h1>Nuevo Pedido</h1>
 <hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+<form asp-action="Create">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <!-- SECCIÓN 1: SELECCIÓN DE CLIENTE -->
+    <div class="card p-3 mb-4">
+        <h4>1. Seleccionar Cliente</h4>
+
+        <!-- Contenedor para mostrar el cliente seleccionado -->
+        <div id="clienteSeleccionado" style="display: none;">
+            <p>
+                <strong>Cliente:</strong> <span id="nombreClienteSeleccionado"></span><br />
+                <strong>CUIT:</strong> <span id="cuitClienteSeleccionado"></span>
+            </p>
+            <button type="button" id="btnCambiarCliente" class="btn btn-sm btn-secondary">Cambiar Cliente</button>
+        </div>
+
+        <!-- Contenedor para la búsqueda de cliente -->
+        <div id="busquedaCliente">
             <div class="form-group">
-                <label asp-for="CUIT" class="control-label"></label>
-                <input asp-for="CUIT" class="form-control" />
-                <span asp-validation-for="CUIT" class="text-danger"></span>
+                <label>Buscar por Razón Social o CUIT:</label>
+                <input type="text" id="buscadorClienteInput" class="form-control" placeholder="Escriba al menos 3 caracteres..." />
             </div>
-            <div class="form-group">
-                <label asp-for="RazonSocial" class="control-label"></label>
-                <input asp-for="RazonSocial" class="form-control" />
-                <span asp-validation-for="RazonSocial" class="text-danger"></span>
+            <div id="resultadosBusqueda" class="list-group mt-2">
             </div>
-            <div class="form-group">
-                <label asp-for="Email" class="control-label"></label>
-                <input asp-for="Email" class="form-control" />
-                <span asp-validation-for="Email" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Telefono" class="control-label"></label>
-                <input asp-for="Telefono" class="form-control" />
-                <span asp-validation-for="Telefono" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="DireccionEnvio" class="control-label"></label>
-                <input asp-for="DireccionEnvio" class="form-control" />
-                <span asp-validation-for="DireccionEnvio" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
-            </div>
-        </form>
+        </div>
+        
+        <!-- Campo oculto para guardar el ID del cliente seleccionado -->
+        <input type="hidden" asp-for="ClienteId" id="clienteIdInput" />
+        <span asp-validation-for="ClienteId" class="text-danger"></span>
     </div>
-</div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
+    <!-- SECCIÓN 2: DETALLE DEL PEDIDO (Productos) -->
+    <div class="card p-3 mb-4">
+        <h4>2. Agregar Productos al Pedido</h4>
+        <p class="text-muted">
+            (Funcionalidad para buscar y agregar productos irá aquí)
+        </p>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Cantidad</th>
+                    <th>Precio Unitario</th>
+                    <th>Subtotal</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Las filas de productos se agregarán aquí dinámicamente -->
+            </tbody>
+        </table>
+    </div>
 
+    <div class="form-group">
+        <input type="submit" value="Crear Pedido" class="btn btn-primary" />
+        <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+    </div>
+</form>
+
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const inputBusqueda = document.getElementById("buscadorClienteInput");
+            const divResultados = document.getElementById("resultadosBusqueda");
+            const clienteIdInput = document.getElementById("clienteIdInput");
+
+            const divBusquedaCliente = document.getElementById("busquedaCliente");
+            const divClienteSeleccionado = document.getElementById("clienteSeleccionado");
+            const btnCambiarCliente = document.getElementById("btnCambiarCliente");
+
+            // --- Lógica de búsqueda ---
+            inputBusqueda.addEventListener("keyup", async function () {
+                let termino = inputBusqueda.value;
+
+                if (termino.length < 3) {
+                    divResultados.innerHTML = "";
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`/Clientes/BuscarClientes?terminoBusqueda=${encodeURIComponent(termino)}`);
+                    if (response.redirected) {
+                        divResultados.innerHTML = '<div class="alert alert-warning">Su sesión ha expirado. Por favor, inicie sesión de nuevo.</div>';
+                        return;
+                    }
+                    const clientes = await response.json();
+                    divResultados.innerHTML = "";
+
+                    if (clientes.length === 0) {
+                        divResultados.innerHTML = '<a class="list-group-item">No se encontraron clientes.</a>';
+                    } else {
+                        clientes.forEach(cliente => {
+                            let link = document.createElement("a");
+                            link.href = "#"; // Evita la navegación
+                            link.className = "list-group-item list-group-item-action";
+                            link.innerText = `${cliente.razonSocial} (CUIT: ${cliente.cuit})`;
+                            link.addEventListener("click", function (e) {
+                                e.preventDefault();
+                                seleccionarCliente(cliente);
+                            });
+                            divResultados.appendChild(link);
+                        });
+                    }
+                } catch (error) {
+                    console.error("Error en la llamada fetch:", error);
+                }
+            });
+
+            // --- Lógica de selección ---
+            function seleccionarCliente(cliente) {
+                // Guardar datos y actualizar UI
+                document.getElementById("nombreClienteSeleccionado").innerText = cliente.razonSocial;
+                document.getElementById("cuitClienteSeleccionado").innerText = cliente.cuit;
+                clienteIdInput.value = cliente.id;
+
+                // Ocultar buscador y mostrar datos del cliente
+                divBusquedaCliente.style.display = "none";
+                divClienteSeleccionado.style.display = "block";
+                divResultados.innerHTML = "";
+            }
+
+            btnCambiarCliente.addEventListener("click", function () {
+                divBusquedaCliente.style.display = "block";
+                divClienteSeleccionado.style.display = "none";
+                clienteIdInput.value = "";
+                inputBusqueda.value = "";
+                inputBusqueda.focus();
+            });
+        });
+    </script>
+}
