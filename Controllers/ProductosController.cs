@@ -43,6 +43,7 @@ namespace Distribuidora.Controllers
 
            
             var productosPaginados = await query
+                                        .OrderBy(p => p.Nombre) 
                                         .Skip((paginaActual - 1) * RPP) 
                                         .Take(RPP) 
                                         .ToListAsync();

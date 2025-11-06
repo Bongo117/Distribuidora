@@ -88,7 +88,7 @@
                     this.errorApi = null;
                     try {
                         
-                        const res = await axios.get('/Proveedores/Listado'); 
+                        const res = await axios.get('/api/Proveedores'); 
                         this.proveedores = res.data;
                         this.titulo = 'Proveedores';
                     } catch (error) {
@@ -120,10 +120,10 @@
                     this.errorApi = null;
                     try {
                         if (this.esAlta) {
-                            await axios.post('/Proveedores/CreateAPI', this.proveedor);
+                            await axios.post('/api/Proveedores', this.proveedor);
                         } else {
                             // La ruta ahora incluye el ID como parte de la URL
-                            await axios.put(`/Proveedores/${this.proveedor.id}`, this.proveedor);
+                            await axios.put(`/api/Proveedores/${this.proveedor.id}`, this.proveedor);
                         }
                         this.modoFormulario = false;
                         this.cargarProveedores(); // Recargamos la tabla
@@ -144,7 +144,7 @@
                         this.errorApi = null;
                         try {
                             // La ruta ahora incluye el ID como parte de la URL
-                            await axios.delete(`/Proveedores/${id}`);
+                            await axios.delete(`/api/Proveedores/${id}`);
                             this.cargarProveedores(); // Recargamos la tabla
                         } catch (error) {
                             console.error("Error al eliminar:", error);
